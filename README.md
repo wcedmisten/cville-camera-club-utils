@@ -36,3 +36,13 @@ python3 create_members_choice_ppt.py \
     --assigned-with-names ~/Downloads/"2026_07_MC Assigned.txt" \
     --output ~/Downloads/July2026MembersChoice.pptx
 ```
+
+# After the meeting
+
+Download scored file from Dropbox, e.g. Scored 2026- 9 Sep
+
+```bash
+mkdir ~/Downloads/aaaScoredSeptember
+python3 rename_files.py ~/Downloads/"Scored 2026- 9 Sep.zip" ~/Downloads/aaaScoredSeptember
+```
+
