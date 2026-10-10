@@ -12,8 +12,30 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('zip_file', help='The zip file containing CCC files to parse')
 parser.add_argument('out_directory', help='The directory to write renamed files to')
+parser.add_argument('--class_lookup_file', help='The CSV file containing class lookup information for each member', required=False)
+parser.add_argument('--scores_csv_output', help='The CSV file to write scores to', required=False)
 
 args = parser.parse_args()
+
+
+# create a map from member name to class (A or B)
+# there are two columns Class and Name that can be used for this
+member_class_map = {}
+if args.class_lookup_file:
+    with open(args.class_lookup_file, 'r') as f:
+        # read the header line to determine the index of the Class and Name columns
+        header = f.readline().strip().split(",")
+        class_index = header.index("Class")
+        name_index = header.index("Name")
+
+        for line in f:
+            splits = line.strip().split(",")
+            member_class_map[splits[name_index]] = splits[class_index]
+
+import pprint
+pprint.pprint(member_class_map)
+    
+
 
 with tempfile.TemporaryDirectory() as temp_dir:
     # 2. Open and extract the zip file
@@ -32,6 +54,16 @@ with tempfile.TemporaryDirectory() as temp_dir:
     print(len(top_rated), "top-rated files found")
 
     def get_category(file):
+        if "A and B" in file:
+            # get the category based on the member class lookup map
+            member_name = file.split("_")[2]  # Assuming the member name is the third part when split by "_"
+            if member_class_map.get(member_name) == "A":
+                return "Assigned A"
+            elif member_class_map.get(member_name) == "B":
+                return "Assigned B"
+            else:
+                print("⚠️ Member name not found in class lookup map, defaulting to 'Assigned B':", member_name)
+                return "Assigned B"
         if "Assigned A" in file:
             return "Assigned A"
         elif "Assigned B" in file:
@@ -124,3 +156,33 @@ with tempfile.TemporaryDirectory() as temp_dir:
 
     print(json.dumps(items))
     print("========================================")
+
+
+if args.scores_csv_output:    
+    all_files = []
+
+    rated = [file for file in files if file.endswith("jpg")]
+    
+    for file in rated:
+        splits = file.split("_")
+        title = splits[1]
+        photographer = splits[2]
+        category = get_category(file)
+        score = splits[3].replace(".jpg", "")
+
+        all_files.append({
+            "title": title,
+            "photographer": photographer,
+            "category": category,
+            "score": score,
+            "original_file": file,
+            "new_filename": file
+        })
+
+    # write the data to a tab separated CSV with the following columns:
+    # Class	Assignment	Title	Name	Score	New Filename
+    # we should include all submissions not just 4s and 5s
+    with open(args.scores_csv_output, 'w') as f:
+        f.write("Class\tAssignment\tTitle\tName\tScore\tNew Filename\n")
+        for file in all_files:
+            f.write(f"{member_class_map.get(file['photographer'], 'Unknown')}\t{file['category']}\t{file['title']}\t{file['photographer']}\t{file['score']}\t{file['new_filename']}\n")
