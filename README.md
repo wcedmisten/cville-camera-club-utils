@@ -18,9 +18,16 @@ python3 organize_members_choice_uploads.py --directory /path/to/"To Judge"
 
 ### Generate Powerpoint
 
-In Poll Unit, for each poll export the `Images / Submissions` as Excel format.
+Download the `Images / Submissions` Excel export and the "All Files" zip for each poll. Set `POLLUNIT_SESSION` to the value of the `_pollunit_session` cookie from a browser logged in to Poll Unit (DevTools → Storage/Application → Cookies). The polls whose titles start with `--month` (default: the current month) are found automatically:
 
-Also export `Images / Submissions` as "All Files". This will produce the .zip files used below.
+```bash
+export POLLUNIT_SESSION=...
+python3 fetch_pollunit.py --month "November 2026" --out-dir ~/Downloads
+```
+
+Admin links can be passed directly instead, e.g. `python3 fetch_pollunit.py "https://pollunit.com/polls/<admin hash>"`.
+
+This writes `<poll_name>.zip` and `<poll_name>-images_submissions.xlsx` for each poll, then prints the `create_members_choice_ppt.py` command below filled in for that month.
 
 Finally you'll need the "key files" for the filename lookup. This will come from an email.
 

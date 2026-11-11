@@ -216,7 +216,7 @@ def add_images(prs, zip_file_path, poll_data, lookup_dict):
         for photo in poll_data:
             path = path_lookup.get(photo['ID'])
             num_votes = photo['Voters']
-            title = photo['Option']
+            title = photo['Title']
             print(title)
             photographer = lookup_dict[title]
 
